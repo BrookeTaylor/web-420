@@ -1,0 +1,30 @@
+{
+  "name": "web-420",
+  "version": "1.0.0",
+  "description": "* Professor Krasso\r * Brooke Taylor",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrookeTaylor/web-420.git"
+  },
+  "author": "Brooke Taylor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BrookeTaylor/web-420/issues"
+  },
+  "homepage": "https://github.com/BrookeTaylor/web-420#readme",
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "express": "^4.17.1",
+    "mongoose": "^5.12.3",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
