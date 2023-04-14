@@ -25,34 +25,21 @@ const router = express.Router();
 /**
  * 
  * findAllComposers
- * 
- * 
  * @openapi 
- * 
  * /api/composers:
- * 
  *   get:
- * 
  *     tags:
- * 
  *       - Composers
- * 
  *     summary: Returns a list of all composer documents
- *     
  *     description: API for returning a list of composers from 
  *       MongoDB Atlas
- * 
  *     responses: 
- *     
  *       '200':
  *         description: Array of composer documents
- * 
  *       '500':
  *         description: Server Exception
- * 
  *       '501':
  *         description: MongoDB Exception
- * 
  * 
  */
 
@@ -92,48 +79,28 @@ router.get('/composers', async(req, res) => {
 /**
  * 
  * findComposerById
- * 
- * 
  * @openapi 
- * 
  * /api/composers/{id}:
- * 
  *   get:
- * 
  *     tags:
- * 
  *       - Composers
- * 
  *     summary: Returns a composer document.
- *     
  *     description: API for returning a single composer object 
  *       from MongoDB
- * 
  *     parameters:
- * 
  *     - name: id
- * 
  *       in: path
- * 
  *       description: The composerId requested by the user
- * 
  *       schema: 
- * 
  *         type: string
- * 
  *       required: true 
- * 
  *     responses: 
- *     
  *       '200':
  *         description: Composer document
- * 
  *       '500':
  *         description: Server Exception
- * 
  *       '501':
  *         description: MongoDB Exception
- * 
  * 
  */
 
@@ -174,55 +141,33 @@ router.get('/composers/:id', async(req, res) => {
 /**
  * 
  * createComposer
- * 
- * 
  * @openapi 
- * 
  * /api/composers:
- * 
  *   post:
- * 
  *     tags:
- * 
  *       - Composers
- * 
  *     summary: Creates a new composer object.
- * 
  *     description: API for adding new composer objects.
- * 
  *     requestBody:
- * 
- *       description: Composer's information
- * 
+ *       description: Composer information
  *       content:
- * 
  *         application/json:
- * 
  *           schema:
- * 
- *         type: object
- * 
- *         properties:
- * 
- *           firstName:
- * 
- *             type: string
- * 
- *           lastName:
- * 
- *             type: string
- * 
- *     responses: 
- *     
+ *             required:
+ *               - firstName
+ *               - lastName
+ *             properties:
+ *              firstName:
+ *                  type: string
+ *              lastName:
+ *                  type: string
+ *     responses:
  *       '200':
  *         description: Composer document
- * 
  *       '500':
  *         description: Server Exception
- * 
  *       '501':
  *         description: MongoDB Exception
- * 
  * 
  */
 
