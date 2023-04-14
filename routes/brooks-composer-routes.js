@@ -137,7 +137,7 @@ router.get('/composers', async(req, res) => {
  * 
  */
 
-router.get('composers/:id', async(req, res) => {
+router.get('/composers/:id', async(req, res) => {
 
 // Wrap the code in a try/catch block.    
     try {
@@ -158,10 +158,10 @@ router.get('composers/:id', async(req, res) => {
                 res.json(composer);
             }
         });
-    } catch(e) {
-        console.log(e);
+    } catch(err) {
+        console.log(err);
         res.status(500).send({
-            message: `Server Exception: ${e.message}`,
+            message: `Server Exception: ${err.message}`,
         });
     }
 
@@ -252,3 +252,4 @@ router.post('/composers', async(req, res) => {
     }
 });
 
+module.exports = router;

@@ -16,9 +16,26 @@ const http = require("http");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const mongoose = require("mongoose");
+const composerAPI = require("./routes/brooks-composer-routes");
 
 // Create a new variable named app and assign it to express library
 const app = express();
+
+// connection string for MongoDB
+const conn =
+  "mongodb+srv://web420_user:s3cret@bellevueuniversity.kqpr8ra.mongodb.net/web420DB";
+
+mongoose
+    .connect(conn)
+    .then(() => {
+        console.log(
+            "Connection to MongoDB Atlas successful."
+        );
+    })
+    .catch((err) => {
+        console.log("MongoDB Error: " + err.message);
+    });
+
 
 // Set the port to process.env.PORT || 3000
 const port = process.env.PORT || 3000;
@@ -41,6 +58,10 @@ const options = {
     },
     apis: ["./routes/*.js"], // files containing annotations for the OpenAPI Specification
 };
+
+
+app.use("/api", composerAPI);
+
 
 // Create a new variable name openapiSpecification 
 // and call the swaggerJsdoc library using the options object literal.
