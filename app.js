@@ -18,6 +18,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const mongoose = require("mongoose");
 const composerAPI = require("./routes/brooks-composer-routes");
 const personAPI = require("./routes/brooks-person-routes");
+const userAPI = require("./routes/brooks-session-routes");
 
 // Create a new variable named app and assign it to express library
 const app = express();
@@ -63,6 +64,7 @@ const options = {
 
 app.use("/api", composerAPI);
 app.use("/api", personAPI);
+app.use("/api", userAPI);
 
 
 // Create a new variable name openapiSpecification 
