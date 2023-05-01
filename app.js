@@ -19,6 +19,7 @@ const mongoose = require("mongoose");
 const composerAPI = require("./routes/brooks-composer-routes");
 const personAPI = require("./routes/brooks-person-routes");
 const userAPI = require("./routes/brooks-session-routes");
+const nodeShop = require("./routes/brooks-node-shopper-routes");
 
 // Create a new variable named app and assign it to express library
 const app = express();
@@ -65,6 +66,7 @@ const options = {
 app.use("/api", composerAPI);
 app.use("/api", personAPI);
 app.use("/api", userAPI);
+app.use("/api", nodeShop);
 
 
 // Create a new variable name openapiSpecification 
