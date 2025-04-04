@@ -1,12 +1,11 @@
-/*
-============================================
-; Title: Assignment 1.2 - GitHub and Project Setup 
-; Author: Professor Krasso 
-; Date: 03/18/2023
-; Modified By: Brooks
-; Description: WEB420-339A RESTful APIs setup. 
-============================================
-*/ 
+/**
+ * Title: Assignment 1.2 - GitHub and Project Setup
+ * Instructor: Professor Krasso 
+ * Author: Brooke Taylor
+ * Date: 3/18/23
+ * Revision: 4/2/25
+ * Description: WEB420-339A RESTful APIs Setup. 
+ */
 
 // Add an app.js file with “require” statements for 
 // express, http, swagger-ui-express, swagger-jsdoc, and mongoose.
@@ -25,20 +24,16 @@ const teamsAPI = require("./routes/brooks-teams-routes");
 // Create a new variable named app and assign it to express library
 const app = express();
 
-// connection string for MongoDB
-const conn =
-  "mongodb+srv://web420_user:s3cret@bellevueuniversity.kqpr8ra.mongodb.net/web420DB";
+// Updated connection string to drop errors.
+mongoose.connect("mongodb+srv://web420_user:s3cret@bellevueuniversity.kqpr8ra.mongodb.net/web420DB")
+    .then(() => console.log("Connected to MongoDB Atlas successfully."))
+    .catch(err => console.error("MongoDB Connection Error:", err.message));
 
-mongoose
-    .connect(conn)
-    .then(() => {
-        console.log(
-            "Connection to MongoDB Atlas successful."
-        );
-    })
-    .catch((err) => {
-        console.log("MongoDB Error: " + err.message);
-    });
+// Added a landing message
+app.get("/", (req, res) => {
+    res.send("Welcome to the WEB 420 API!");
+});
+
 
 
 // Set the port to process.env.PORT || 3000
