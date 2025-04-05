@@ -3,7 +3,7 @@
  * Instructor: Professor Krasso
  * Author: Brooke Taylor
  * Date 4/8/23
- * Revision: 4/3/25
+ * Revision: 4/4/25
  * Description: Composer API Routes.
  */
 
@@ -29,22 +29,27 @@ const router = express.Router();
  *     summary: Returns a list of all composer documents
  *     responses:
  *       '200':
- *         description: Successfully retrieved composers
+ *         description: 'Ok: The request was successful.'
  *       '500':
- *         description: Internal Server Error
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.get('/composers', async (req, res) => {
+
     try {
-      const composers = await Composer.find({});
-      console.log(`200 - Successfully retrieved ${composers.length} composers.`);
-      res.status(200).json(composers);
+
+//        throw new Error("Simulated 500 Error Test");       // THIS LINE WAS USED FOR TESTING 500 CALL
+        const composers = await Composer.find({});
+
+        console.log(`200 Ok: The request was successful.\nFound ${composers.length} composers.`);
+        return res.status(200).json(composers);
+
     } catch (err) {
-      console.error(err);
-      console.error(`500 - Internal Server Error: ${err.message}`);
-      res.status(500).json({ message: `Internal Server Error: ${err.message}` });
+        console.error(err);
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
-  });
+});
   
 
 
@@ -67,13 +72,13 @@ router.get('/composers', async (req, res) => {
  *           type: string
  *     responses:
  *       '200':
- *         description: Successfully retrieved composer
+ *         description: 'Ok: The request was successful.'
  *       '400':
- *         description: Bad Request - Missing or Invalid Fields
+ *         description: 'Bad Request: The request was malformed or invalid.'
  *       '404':
- *         description: Not Found
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Internal Server Error
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.get('/composers/:id', async (req, res) => {
@@ -81,25 +86,27 @@ router.get('/composers/:id', async (req, res) => {
         const { id } = req.params;
 
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            console.warn(`400 - Bad Request: Missing or Invalid Fields: ${id}`);
-            return res.status(400).json({ message: "Bad Request: Missing or Invalid Fields" });
+            console.warn(`400 Bad Request: The request was malformed or invalid\n${id}`);
+            return res.status(400).json({ message: '400 Bad Request: The request was malformed or invalid.' });
         }
 
+//        throw new Error("Simulated 500 Error Test");       // THIS LINE WAS USED FOR TESTING 500 CALL
         const composer = await Composer.findById(id);
 
         if (!composer) {
-            console.warn(`404 - Not Found: ${id}`);
-            return res.status(404).json({ message: "404 - Not Found" });
+            console.warn(`404 Not Found: The requested resource could not be found.\n${id}`);
+            return res.status(404).json({ message: '404 Not Found: The requested resource could not be found.' });
         }
 
-        console.log(`200 - Successfully retrieved: ${composer.firstName} ${composer.lastName}.`);
-        res.status(200).json(composer);
+        console.log(`200 Ok: The request was successful.\n${composer.firstName} ${composer.lastName}.`);
+        return res.status(200).json(composer);
 
     } catch (err) {
-        console.error(`500 - Internal Server Error: ${err.message}`);
-        res.status(500).json({ message: `Internal Server Error: ${err.message}` });
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
 });
+
 
 
 
@@ -132,40 +139,42 @@ router.get('/composers/:id', async (req, res) => {
  *                 description: The lastName of the composer
  *     responses:
  *       '201':
- *         description: Successfully created composer
+ *         description: 'Created: A new resource has been successfully created.'
  *       '400':
- *         description: Bad Request - Missing or Invalid Fields
+ *         description: 'Bad Request: The request was malformed or invalid.'
  *       '409':
- *         description: Composer already exists
+ *         description: 'Conflict: The request could not be completed due to a conflict.'
  *       '500':
- *         description: Internal Server Error
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.post('/composers', async (req, res) => {
     try {
         const { firstName, lastName } = req.body; 
 
+//        throw new Error('Simulated 500 Error Test');       // THIS LINE WAS USED FOR TESTING 500 CALL
+
         if (!firstName || !lastName) {
-            console.warn(`400 - Bad Request - Missing or Invalid Fields: firstName=${firstName} lastName=${lastName}`);
-            return res.status(400).json({ message: `Bad Request - Missing or Invalid Fields: firstName=${firstName} lastName=${lastName}` });
+            console.warn(`400 Bad Request: The request was malformed or invalid.\nfirstName=${firstName} lastName=${lastName}`);
+            return res.status(400).json({ message: '400 Bad Request: The request was malformed or invalid.' });
         }
 
         const existingComposer = await Composer.findOne({ firstName, lastName });
 
         if (existingComposer) {
-            console.warn(`409 - Composer already exists: ${firstName} ${lastName}`);
-            return res.status(409).json({ message: `Composer with name ${firstName} ${lastName} already exists` });
+            console.warn(`409 Conflict: The request could not be completed due to a conflict\n${firstName} ${lastName}`);
+            return res.status(409).json({ message: '409 Conflict: The request could not be completed due to a conflict.' });
         }
 
         const newComposer = new Composer({ firstName, lastName });
         const savedComposer = await newComposer.save();
 
-        console.log(`201 - Successfully created ${savedComposer.firstName} ${savedComposer.lastName}`);
-        res.status(201).json(savedComposer); 
+        console.log(`201 Created: A new resource has been successfully created.\n${savedComposer.firstName} ${savedComposer.lastName}`);
+        return res.status(201).json(savedComposer); 
 
     } catch (err) {
-        console.error(`500 - Internal Server Error: ${err.message}`);
-        res.status(500).json({ message: `Internal Server Error: ${err.message}` });
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
 });
 
@@ -207,13 +216,13 @@ router.post('/composers', async (req, res) => {
  *                 description: The updated last name of the composer
  *     responses:
  *       '200':
- *         description: Successfully updated composer
+ *         description: 'Ok: The request was successful.'
  *       '400':
- *         description: Bad Request - Missing or Invalid Fields
+ *         description: 'Bad Request: The request was malformed or invalid.'
  *       '404':
- *         description: Not Found
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Internal Server Error
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.put('/composers/:id', async (req, res) => {
@@ -221,22 +230,27 @@ router.put('/composers/:id', async (req, res) => {
         const { id } = req.params;
         const { firstName, lastName } = req.body;
 
+//        throw new Error("Simulated 500 Error Test");       // THIS LINE WAS USED FOR TESTING 500 CALL
+
+
         if (!firstName || !lastName) {
-            return res.status(400).json({ message: "Bad Request - Missing or Invalid Fields"});            
+            console.warn(`400 Bad Request: The request was malformed or invalid.\nfirstName=${firstName} lastName=${lastName}`);  
+            return res.status(400).json({ message: "400 Bad Request: The request was malformed or invalid."});          
         }
 
-        const updatedComposer = await Composer.findByIdAndUpdate(id, { firstName, lastName}, { new: true });
+        const updatedComposer = await Composer.findByIdAndUpdate(id, { firstName, lastName }, { new: true });
 
         if (!updatedComposer) {
-            return res.status(404).json({ message: "Composer not found" });
+            console.warn(`404 Not Found: The requested resource could not be found.\n${id}`);
+            return res.status(404).json({ message: "404 Not Found: The requested resource could not be found." });
         }
 
-        console.log(`200 - Successfully updated ${firstName} ${lastName}`);
-        res.status(200).json({ message: `Successfully updated ${firstName} ${lastName}.`});
+        console.log(`200 Ok: The request was successful.\n${firstName} ${lastName}`);
+        return res.status(200).json({ message: '200 Ok: The request was successful.' });
 
     } catch (err) {
-        console.error(`500 - Internal Server Error: ${err.message}`);
-        res.status(500).json({ message: `Internal Server Error: ${err.message}` });
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
 });
 
@@ -264,35 +278,40 @@ router.put('/composers/:id', async (req, res) => {
  *           type: string
  *     responses:
  *       '204':
- *         description: No Content
+ *         description: 'No Content: The request was successful but there is no content to return.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
  *       '404':
- *         description: Not Found
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Internal Server Error
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.delete('/composers/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
+        // throw new Error("Simulated 500 Error Test");       // THIS LINE WAS USED FOR TESTING 500 CALL
+
+
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            console.warn(`400 - Bad Request: Invalid ObjectId format: ${id}`);
-            return res.status(400).json({ message: "Bad Request: Invalid ID format" });
+            console.warn(`400 - Bad Request: The request was malformed or invalid.\n${id}`);
+            return res.status(400).json({ message: "Bad Request: The request was malformed or invalid" });
           }
 
         const deletedComposer = await Composer.findByIdAndDelete(id);
 
         if (!deletedComposer) {
-            console.warn(`404 - Composer not found for ID: ${id}`);
-            return res.status(404).json({ message: "Composer not found" });
+            console.warn(`404 Not Found: The requested resource could not be found.\n${id}`);
+            return res.status(404).json({ message: '404 Not Found: The requested resource could not be found.' });
         }
 
-        console.log(`204 - Successfully deleted composer with ID: ${id}`);
+        console.log(`204 No Content: The request was successful but there is no content to return.`);
         return res.status(204).send(); 
 
     } catch (err) {
-        console.error(`500 - Internal Server Error: ${err.message}`);
-        return res.status(500).json({ message: `Internal Server Error: ${err.message}` });
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
 });
 
