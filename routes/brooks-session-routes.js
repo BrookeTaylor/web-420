@@ -1,12 +1,11 @@
-/*
-============================================
-; Title: brooks-user.js
-; Author: Professor Krasso 
-; Date: 04/23/2023
-; Modified By: Brooks
-; Description: User sign up and log in.
-============================================
-*/ 
+/**
+ * Title: brooks-session-routes.js
+ * Instructor: Professor Krasso
+ * Author: Brooke Taylor
+ * Date 4/8/23
+ * Revision: 4/7/25
+ * Description: User sign up and log in.
+ */
 
 // Add the appropriate requirement statements 
 // (express, router, User, and bcrypt)
@@ -49,47 +48,55 @@ const saltRounds = 10;
  *               emailAddress: 
  *                 type: string     
  *     responses: 
- *       '200':
- *         description: Registered user. 
- *       '401':
- *         description: Username is already in use. 
+ *       '201':
+ *         description: 'Created: A new resource has been successfully created.' 
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.' 
+ *       '409':
+ *         description: 'Conflict: The request could not be completed due to a conflict'
  *       '500':
- *         description: Server Exception
- *       '501':
- *         description: MongoDB Exception
+ *         description: 'Internal Server Error: A server error occurred.'
  * 
  */
 
 router.post('/signup', async (req, res) => {
-
     try {
+        const { userName, password, emailAddress } = req.body;
 
-        const hashedPassword = bcrypt.hashSync(req.body.password, saltRounds);
-        const newRegisteredUser = {
-            userName: req.body.userName,
-            password: hashedPassword,
-            emailAddress: req.body.emailAddress,
+        if (!userName || !password || !emailAddress) {
+            console.warn(`400 Bad Request: The request was malformed or invalid.\nuserName=${userName} password=${password} emailAddress=${emailAddress}`);
+            return res.status(400).send({
+                message: '400 Bad Request: The request was malformed or invalid.'
+            });
         }
 
-        await User.create(newRegisteredUser, function(err, password) {
-            if (err) {
-                console.log(err);
-                res.status(501).send({
-                    'message': `MongoDB Exception: ${err}`
-                })
-            } else {
-                console.log(password);
-                res.json(password);
-            }
-        })
+        const hashedPassword = bcrypt.hashSync(password, saltRounds);
+        const newRegisteredUser = {
+            userName,
+            password: hashedPassword,
+            emailAddress,
+        };
+
+        const existingUser = await User.findOne({ userName: userName });
+        if (existingUser) {
+            console.warn(`409 - Conflict: The request could not be completed due to a conflict.\nuserName=${userName}`);
+            return res.status(409).send({
+                message: `409 Conflict: The request could not be completed due to a conflict.`
+            });
+        }
+
+        const createdUser = await User.create(newRegisteredUser);
+        console.log(`201 - Created: New user "${userName}" successfully registered.`);
+        res.status(201).json(createdUser);
 
     } catch (e) {
-        console.log(e);
+        console.error(`500 - Server Exception: ${e.message}`);
         res.status(500).send({
-            'message': `Server Exception: ${e.message}`
+            message: `Server Exception: ${e.message}`
         });
     }
 });
+
 
 
 
@@ -118,54 +125,58 @@ router.post('/signup', async (req, res) => {
  *                 type: string 
  *     responses: 
  *       '200':
- *         description: User logged in. 
+ *         description: 'Ok: The request was successful.' 
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
  *       '401':
- *         description: Invalid username and/or password. 
+ *         description: 'Unauthorized: Authentication is required and has failed or not been provided.'
  *       '500':
- *         description: Server Exception
- *       '501':
- *         description: MongoDB Exception
+ *         description: 'Internal Server Error: A server error occurred.'
  * 
  */
 
 router.post('/login', async (req, res) => {
-
     try {
-        User.findOne({ 'userName': req.body.userName },
-        function (err, user) {
+        const { userName, password } = req.body;
 
-            if (err) {
-                console.log(err);
-                res.status(501).send({
-                    'message': `MongoDB Exception: ${err}`
-                });
-            } else {
-                if (user) {
-                    let passwordIsValid = bcrypt.compareSync(req.body.password, user.password)
+        if (!userName || !password) {
+            console.warn('400 Bad Request: The request was malformed or invalid.\nuserName=${userName} password=${password}');
+            return res.status(400).send({
+                message: 'Bad Request: The request was malformed or invalid.'
+            });
+        }
 
-                    if (passwordIsValid) {
-                        res.status(200).send({
-                            'message': 'User logged in'
-                        });
-                    } else {
-                        res.status(401).send({
-                            'message': `Invalid username and/or password`
-                        });
-                    }
-                } else {
-                    res.status(401).send({
-                        'message': `Invalid username and/or password`
-                    });
-                }
-            }
+        const user = await User.findOne({ userName });
+
+        if (!user) {
+            console.warn(`401 Unauthorized: Authentication is required and has failed or not been provided.\n${userName} is not registered.`);
+            return res.status(401).send({
+                message: '401 Unauthorized: Authentication is required and has failed or not been provided. Not registered.'
+            });
+        }
+
+        const passwordIsValid = bcrypt.compareSync(password, user.password);
+
+        if (!passwordIsValid) {
+            console.warn(`401 Unauthorized: Authentication is required and has failed or not been provided.\nIncorrect Password for ${userName}.`);
+            return res.status(401).send({
+                message: '401 Unauthorized: Authentication is required and has failed or not been provided. Incorrect password.'
+            });
+        }
+
+        console.log(`200 Ok: The request was successful.\n${userName} has logged in.`);
+        res.status(200).send({
+            message: '200 Ok: The request was successful.'
         });
+
     } catch (e) {
-        console.log(e);
+        console.error(`500 Internal Server Error: A server error occurred.\n${e.message}`);
         res.status(500).send({
-            'message': `Server Exception: ${e.message}`
+            message: `Internal Server Error: A server error occurred.`
         });
     }
 });
+
 
 module.exports = router;
 
