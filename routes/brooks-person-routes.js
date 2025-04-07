@@ -1,12 +1,11 @@
-/*
-============================================
-; Title: brooks-person-routes.js
-; Author: Professor Krasso 
-; Date: 04/14/2023
-; Modified By: Brooks
-; Description: Composer API Routes.
-============================================
-*/ 
+/**
+ * Title: brooks-person-routes.js
+ * Instructor: Professor Krasso
+ * Author: Brooke Taylor
+ * Date 4/14/23
+ * Revision: 4/7/25
+ * Description: Person Routes.
+ */
 
 // Add the appropriate requirement statements 
 // (express, router, and Person).
@@ -32,42 +31,33 @@ const Person = require('../models/brooks-person');
  *     description: API for returning a list Persons
  *     responses:
  *       '200':
- *         description: Array of person documents. 
+ *         description: 'Ok: The request was successful.' 
  *       '500':
- *         description: Server Exception.
- *       '501':
- *         description: MongoDB Exception
- * 
+ *         description: 'Internal Server Error: A server error occurred.' 
  */
-router.get('/persons', async(req, res) => {
 
-// Wrap the code in a try/catch block.
+router.get('/persons', async (req, res) => {
+
     try {
-    
-// Query the people collection using the find() function on 
-// the Person model.
-        Person.find({}, function(err, persons) {
-    
-// Either return an array of person documents or the 
-// appropriate message depending on the status code.
-            if (err) {
-                console.log(err);
-                res.status(501).send({
-                    message: `MongoDB Exception: ${err}`
-                });
-                } else {
-                    console.log(persons);
-                    res.json(persons);
-                }
-            });
-        } catch(e) {
-            console.log(e);
-            res.status(500).send({
-                message: `Server Exception: ${e.message}`
-            });
+
+//        throw new Error("Simulated 500 Error Test");       // THIS LINE WAS USED FOR TESTING 500 CALL
+        const person = await Person.find({});
+
+        console.log(`200 Ok: The request was successful.\nFound ${person.length} persons.`);
+        return res.status(200).json(person);
+
+    } catch (err) {
+        console.error(err);
+        console.error(`500 Internal Server Error: A server error occurred.\n${err.message}`);
+        return res.status(500).json({ message: '500 Internal Server Error: A server error occurred.' });
     }
-    
 });
+
+
+
+
+
+
 
 
 /**
@@ -115,51 +105,40 @@ router.get('/persons', async(req, res) => {
  *               birthDate:
  *                     type: string
  *     responses:
- *       '200':
- *         description: Array of person documents. 
+ *       '201':
+ *         description: 'Created: A new resource has been successfully created.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'  
  *       '500':
- *         description: Server Exception.
- *       '501':
- *         description: MongoDB Exception
- * 
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
-router.post('/persons', async(req, res) => {
-
-// Wrap the code in a try/catch block.
+router.post('/persons', async (req, res) => {
     try {
-
-// Query the people collection using the find() function on 
-// the Person model.
-        const newPerson = {
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            roles: req.body.roles,
-            dependents: req.body.dependents,
-            birthDate: req.body.birthDate
-        }
-
-        await Person.create(newPerson, function(err, person) {
-
-// Either return an array of person documents or the 
-// appropriate message depending on the status code.
-            if (err) {
-                console.log(err);
-                res.status(501).send({
-                    message: `MongoDB Exception: ${err}`,
-                });
-            } else {
-                console.log(person); 
-                res.json(person);
-            }
+      const { firstName, lastName, roles, dependents, birthDate } = req.body;
+  
+      if (!firstName || !lastName || !Array.isArray(roles) || !Array.isArray(dependents) || !birthDate) {
+        console.warn(`400 Bad Request: The request was malformed or invalid`)
+        return res.status(400).json({
+          message: 'Bad Request: The request was malformed or invalid.',
         });
-    } catch(e) {
-        console.log(e); 
-        res.status(500).send({
-            message: `Server Exception: ${e.message}`,
-        });
+      }
+  
+      const newPerson = { firstName, lastName, roles, dependents, birthDate };
+  
+      const person = await Person.create(newPerson);
+      console.log(person);
+      res.status(201).json(person);
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        message: `Server Exception: ${err.message}`,
+      });
     }
-});
+  });
+  
+
 
 // Export the router using module.exports. 
 module.exports = router;
