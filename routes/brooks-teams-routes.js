@@ -1,12 +1,13 @@
-/*
-============================================
-; Title: brooks-team-routes.js
-; Author: Professor Krasso 
-; Date: 05/10/2023
-; Modified By: Brooks
-; Description: Team API Routes.
-============================================
-*/ 
+/**
+ * Title: brooks-teams-routes.js
+ * Instructor: Professor Krasso
+ * Author: Brooke Taylor
+ * Date 5/10/23
+ * Revision: 4/9/25
+ * Description: Team API Routes.
+ */
+
+const mongoose = require('mongoose');
 
 // Add the appropriate requirement statements 
 // (express, router, and Person).
@@ -56,40 +57,50 @@ const Team = require('../models/brooks-teams');
  *                     salary:
  *                       type: number
  *     responses:
- *       '200':
- *         description: Team added to MongoDB
+ *       '201':
+ *         description: 'Created: A new resource has been successfully created.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
+ *       '409':
+ *         description: 'Conflict: The request could not be completed due to a conflict.'
  *       '500':
- *         description: Server Exception
- *       '501':
- *         description: MongoDB Exception
+ *         description: 'Internal Server Error: A server error occurred.'
  */
-router.post('/teams', async (req, res) => {
-    try {
-       // Create a new team document
-       const newTeam = {
-          name: req.body.name,
-          mascot: req.body.mascot,
-          players: req.body.players,
-       };
-       // Create a new team document 
-       await Team.create(newTeam, function(err, team) {
-          if (err) {
-             console.log(err);
-             res.status(501).send({
-                message: `MongoDB Exception: ${err}`
-             });
-          } else {
-             console.log(team);
-             res.json(team);
-          }
-       });
-    } catch (e) {
-       console.log(e);
+
+
+
+ router.post('/teams', async (req, res) => {
+   try {
+       const { name, mascot, players } = req.body;
+
+       if (!name || !mascot || !Array.isArray(players) || players.length === 0) {
+           console.warn(`400 Bad Request: The request was malformed or invalid.`);
+           return res.status(400).send({
+               message: '400 Bad Request: The request was malformed or invalid.'
+           });
+       }
+
+       const existingTeam = await Team.findOne({ name });
+       if (existingTeam) {
+           console.warn(`409 Conflict: The request could not be completed due to a conflict.\nname=${name}`);
+           return res.status(409).send({
+               message: `409 Conflict: The request could not be completed due to a conflict.`
+           });
+       }
+
+       const newTeam = await Team.create({ name, mascot, players });
+
+       console.log(`201 Created: A new resource has been successfully created.`);
+       res.status(201).send(newTeam);
+
+   } catch (e) {
+       console.error(`500 Internal Server Error: A server error occurred.`);
        res.status(500).send({
-          message: `Server Exception: ${e.message}`
+           message: `500 Internal Server Error: A server error occurred.`
        });
-    }
- });
+   }
+});
+
  
  
  
@@ -105,32 +116,23 @@ router.post('/teams', async (req, res) => {
   *     summary: return all teams.
   *     responses:
   *       '200':
-  *         description: Array of team documents
+  *         description: 'Ok: The request was successful.'
   *       '500':
-  *         description: Server Exception.
-  *       '501':
-  *         description: MongoDB Exception.
+  *         description: 'Internal Server Error: A server error occurred.'
   */
- router.get('/teams', async (req, res) => { 
-    try {
-       Team.find({}, function(err, teams) {
-             if (err) {
-                console.log(err);
-                res.status(501).send({
-                   message: `MongoDB Exception: ${err}`
-                });
-             } else {
-                console.log(teams);
-                res.json(teams);
-             }
-       });
-    } catch (e) {
-       console.log(e);
+ router.get('/teams', async (req, res) => {
+   try {
+       const teams = await Team.find({});
+       console.log(`200 Ok: The request was successful.`);
+       res.status(200).json(teams);
+   } catch (e) {
+       console.error(`500 Internal Server Error: A server error occurred.`);
        res.status(500).send({
-             message: `Server Exception: ${e.message}`
+           message: `Server Exception: ${e.message}`
        });
-    }
+   }
 });
+
 
 
 
@@ -171,40 +173,71 @@ router.post('/teams', async (req, res) => {
  *                 type: number
  *     responses:
  *       '200':
- *         description: Player assigned to team
- *       '401':
- *         description: Invalid team ID
+ *         description: 'Ok: The request was successful.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
+ *       '404':
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Server Exception.
- *       '501':
- *         description: MongoDB Exception.
+ *         description: 'Internal Server Error: A server error occurred.'
  */
+
 router.post('/teams/:id/players', async (req, res) => {
    try {
-      const teamName = req.params.id;
-      const newPlayer = {
-         firstName: req.body.firstName,
-         lastName: req.body.lastName,
-         salary: req.body.salary
-      };
-      await Team.findOneAndUpdate( { _id: teamName }, { $push: { players: newPlayer } }, { new: true }, function(err, team) {
-         if (err) {
-            console.log(err);
-            res.status(401).send({
-               message: `Invalid team ID: ${err}`
-            });
-         } else {
-            console.log(team);
-            res.json(team);
-         }
+     const teamId = req.params.id;
+
+     if (!mongoose.Types.ObjectId.isValid(teamId)) {
+      return res.status(400).send({
+        message: `400 Bad Request: The request was malformed or invalid. ${teamId}`
       });
+    }
+
+     const newPlayer = {
+       firstName: req.body.firstName,
+       lastName: req.body.lastName,
+       salary: req.body.salary
+     };
+ 
+     if (
+       !newPlayer.firstName ||
+       !newPlayer.lastName ||
+       typeof newPlayer.salary !== 'number'
+     ) {
+       console.warn('400 Bad Request: The request was malformed or invalid');
+       return res.status(400).send({
+         message: '400 Bad Request: The request was malformed or invalid).'
+       });
+     }
+ 
+     const updatedTeam = await Team.findOneAndUpdate(
+       { _id: teamId },
+       { $push: { players: newPlayer } },
+       { new: true }
+     );
+ 
+     if (!updatedTeam) {
+       console.warn(`404 Not Found: The requested resource could not be found\n${teamId}`);
+       return res.status(404).send({
+         message: `404 Not Found: The requested resource could not be found.`
+       });
+     }
+ 
+     console.log('200 Ok: The request was successful', updatedTeam);
+     res.status(200).json(updatedTeam);
+ 
    } catch (e) {
-      console.log(e);
-      res.status(500).send({
-         message: `Server Exception: ${e.message}`
-      });
+     console.error('500 Internal Server Error: A server error occurred', e);
+     res.status(500).send({
+       message: `500 Internal Server Error: A server error occurred.}`
+     });
    }
-});
+ });
+ 
+
+
+
+
+
 
 
 
@@ -227,38 +260,47 @@ router.post('/teams/:id/players', async (req, res) => {
  *           type: string
  *     responses:
  *       '200':
- *         description: Array of player documents
- *       '401':
- *         description: Invalid teamId
+ *         description: 'Ok: The request was successful.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
+ *       '404':
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Server Exception.
- *       '501':
- *         description: MongoDB Exception.
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 router.get('/teams/:id/players', async (req, res) => {
-
    try {
-      const teamId = req.params.id;
-
-      await Team.findOne({ _id: teamId }, function(err, team) {
-         if(err) {
-            console.log(err);
-            res.status(401).send({
-               message: `Invalid team name: ${err}`
-            });
-         } else {
-            console.log(team.players);
-            res.json(team.players);
-         }
-      });
-   } catch(e) {
-      console.log(e);
-      res.status(500).send({
-         message: `Server Exception: ${e.message}`
-      });
+     const teamId = req.params.id;
+ 
+     if (!mongoose.Types.ObjectId.isValid(teamId)) {
+       console.warn(`400 Bad Request: The request was malformed or invalid.\n${teamId}`);
+       return res.status(400).send({
+         message: `400 Bad Request: The request was malformed or invalid`
+       });
+     }
+ 
+     const team = await Team.findOne({ _id: teamId });
+ 
+     if (!team) {
+       console.warn(`404 Not Found: The requested resource could not be found\n${teamId}`);
+       return res.status(404).send({
+         message: `404 Not Found: The requested resource could not be found`
+       });
+     }
+ 
+     console.log(`200 OK: The request was successful.`);
+     res.status(200).json(team.players);
+   } catch (e) {
+     console.error(`500 Internal Server Error: A server error occurred.\n${e.message}`);
+     res.status(500).send({
+       message: `500 Internal Server Error: A server error occurred.`
+     });
    }
+ });
 
-});
+
+
+
 
 
 
@@ -281,37 +323,46 @@ router.get('/teams/:id/players', async (req, res) => {
  *           type: string
  *     responses:
  *       '200':
- *         description: Team document
- *       '401':
- *         description: Invalid teamId
+ *         description: 'Ok: The request was successful.'
+ *       '400':
+ *         description: 'Bad Request: The request was malformed or invalid.'
+ *       '404':
+ *         description: 'Not Found: The requested resource could not be found.'
  *       '500':
- *         description: Server Exception.
- *       '501':
- *         description: MongoDB Exception.
+ *         description: 'Internal Server Error: A server error occurred.'
  */
 
 router.delete('/teams/:id', async (req, res) => {
    try {
-      const teamId = req.params.id;
-
-      await Team.findOneAndDelete({ _id: teamId }, function (err, team) {
-         if (err) {
-            console.log(err);
-            res.status(401).send({
-               message: `Invalid teamId: ${err}`
-            });
-         } else {
-            console.log(team);
-            res.json(team);
-         }
-      });
+     const teamId = req.params.id;
+ 
+     if (!mongoose.Types.ObjectId.isValid(teamId)) {
+       console.warn(`400 Bad Request: The request was malformed or invalid.\n${teamId}`);
+       return res.status(400).send({
+         message: `400 Bad Request: The request was malformed or invalid.`
+       });
+     }
+ 
+     const result = await Team.findByIdAndDelete(teamId);
+ 
+     if (!result) {
+       console.warn(`404 Not Found: The requested resource could not be found.\n${teamId}`);
+       return res.status(404).send({
+         message: `404 Not Found: The requested resource could not be found.`
+       });
+     }
+ 
+     console.log(`200 Ok: The request was successful.`);
+     res.status(200).send({
+       message: `200 Ok: The request was successful.`
+     });
    } catch (e) {
-      console.log(e);
-      res.status(500).send({
-         message: `Server Exception: ${e.message}`
-      });
+     console.error(`500 Internal Server Error: A server error occurred.\n${e.message}`);
+     res.status(500).send({
+       message: `500 Internal Server Error: A server error occurred.`
+     });
    }
-});
+ });
 
 
 

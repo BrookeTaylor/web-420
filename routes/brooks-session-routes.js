@@ -2,7 +2,7 @@
  * Title: brooks-session-routes.js
  * Instructor: Professor Krasso
  * Author: Brooke Taylor
- * Date 4/8/23
+ * Date 4/23/23
  * Revision: 4/7/25
  * Description: User sign up and log in.
  */
